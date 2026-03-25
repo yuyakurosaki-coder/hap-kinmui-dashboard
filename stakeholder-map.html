@@ -3,453 +3,441 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>歯科業界ステークホルダーマップ｜勤務医獲得PJT</title>
+<title>歯科業界ステークホルダーダッシュボード｜勤務医獲得PJT</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
-:root {
-  --brand: #196B25;
-  --brand-light: #e8f5e9;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Segoe UI','Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif; background:#0f1923; color:#e0e0e0; min-height:100vh; }
+:root{--brand:#196B25;--bg:#0f1923;--card:#151f2b;--card2:#1a2a3a;--border:#233345;--txt:#d0d8e0;--sub:#8899aa;--red:#e53935;--orange:#ff9800;--yellow:#fdd835;--green:#43a047;--blue:#42a5f5;--purple:#ab47bc;--teal:#26a69a;--gray:#78909c;--pink:#ec407a;--brown:#8d6e63;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI','Hiragino Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+.header{background:linear-gradient(135deg,#0d2818 0%,#1a3a2a 50%,#0f1923 100%);padding:32px 40px 24px;border-bottom:1px solid var(--border);}
+.header h1{font-size:26px;color:#fff;font-weight:800;}
+.header p{color:var(--sub);font-size:13px;margin-top:4px;}
+.container{max-width:1320px;margin:0 auto;padding:24px 20px 60px;}
 
-.header { text-align:center; padding:32px 20px 8px; }
-.header h1 { font-size:24px; color:#fff; font-weight:800; }
-.header p { font-size:13px; color:#8899aa; margin-top:6px; }
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 16px;text-align:center;}
+.kpi .num{font-size:32px;font-weight:800;}
+.kpi .lbl{font-size:11px;color:var(--sub);margin-top:4px;letter-spacing:0.3px;}
 
-/* Legend */
-.legend { display:flex; justify-content:center; gap:16px; flex-wrap:wrap; padding:16px 20px 8px; }
-.legend-item { display:flex; align-items:center; gap:6px; font-size:11px; color:#aaa; }
-.legend-dot { width:12px; height:12px; border-radius:50%; }
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px;transition:border-color .2s;}
+.card:hover{border-color:#3a5a7a;}
+.card h2{font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.card h2 .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 
-/* SVG Map Container */
-.map-wrap { position:relative; width:100%; max-width:1200px; margin:0 auto; padding:20px; }
-.map-svg { width:100%; height:auto; }
+/* SVG Map */
+.map-container{position:relative;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:18px;}
+.map-container h2{font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;}
+.map-svg{width:100%;height:auto;display:block;}
 
-/* Category ring */
-.cat-group { cursor:pointer; transition:transform 0.2s; }
-.cat-group:hover { transform:scale(1.03); }
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:#0d1520;color:var(--sub);padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+td{padding:10px 12px;border-bottom:1px solid #1a2535;}
+tr:hover td{background:rgba(255,255,255,.02);}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;white-space:nowrap;}
+.b-good{background:rgba(67,160,71,.15);color:#81c784;}
+.b-maybe{background:rgba(255,152,0,.15);color:#ffcc80;}
+.b-bad{background:rgba(229,57,53,.15);color:#ef9a9a;}
+.b-active{background:rgba(66,165,245,.15);color:#90caf9;}
+.b-star{background:rgba(255,152,0,.2);color:#ffe082;}
 
-/* Tooltip */
-.tooltip {
-  display:none; position:fixed; background:#1a2a3a; border:1px solid #2a4a6a;
-  border-radius:10px; padding:16px 20px; max-width:380px; z-index:1000;
-  box-shadow:0 8px 32px rgba(0,0,0,0.5); pointer-events:none;
-}
-.tooltip.show { display:block; }
-.tooltip h3 { font-size:14px; color:#fff; margin-bottom:8px; }
-.tooltip ul { list-style:none; padding:0; }
-.tooltip li { font-size:12px; color:#bbb; padding:3px 0; border-bottom:1px solid #1e3040; line-height:1.5; }
-.tooltip li:last-child { border:none; }
-.tooltip .note { margin-top:8px; padding:8px 10px; background:#0d1520; border-radius:6px; font-size:11px; color:#ff9800; line-height:1.5; }
-.tooltip .verdict { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; margin-left:4px; }
-.v-good { background:#1b5e20; color:#81c784; }
-.v-maybe { background:#4e342e; color:#ffb74d; }
-.v-bad { background:#4a1111; color:#ef9a9a; }
+/* Category card */
+.cat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;border-left:4px solid;}
+.cat-card h3{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.cat-card h3 .num-badge{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;}
+.cat-card ul{list-style:none;padding:0;}
+.cat-card li{font-size:12px;padding:4px 0;color:#9ab;border-bottom:1px solid #1a2535;line-height:1.5;}
+.cat-card li:last-child{border:none;}
+.cat-card .insight{margin-top:10px;padding:10px;border-radius:6px;font-size:11px;line-height:1.6;}
+.ins-good{background:rgba(25,107,37,.12);border-left:3px solid var(--green);color:#a5d6a7;}
+.ins-warn{background:rgba(255,152,0,.08);border-left:3px solid var(--orange);color:#ffcc80;}
+.ins-bad{background:rgba(229,57,53,.08);border-left:3px solid var(--red);color:#ef9a9a;}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:18px;}
 
-/* Bottom detail cards */
-.detail-section { max-width:1200px; margin:0 auto; padding:0 20px 60px; }
-.detail-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:16px; }
-.detail-card {
-  background:linear-gradient(135deg, #141e2a 0%, #1a2a3a 100%);
-  border:1px solid #233345; border-radius:12px; padding:20px;
-  transition:border-color 0.2s;
-}
-.detail-card:hover { border-color:#3a6090; }
-.detail-card h3 { font-size:15px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
-.detail-card h3 .num { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; font-size:12px; font-weight:800; color:#fff; flex-shrink:0; }
-.detail-card ul { list-style:none; padding:0; }
-.detail-card li { font-size:12px; padding:5px 0; border-bottom:1px solid #1e2e3e; line-height:1.6; color:#bcc; }
-.detail-card li:last-child { border:none; }
-.detail-card .insight { margin-top:10px; padding:10px 12px; border-radius:6px; font-size:11px; line-height:1.6; }
-.insight-good { background:rgba(25,107,37,0.15); border-left:3px solid #43a047; color:#a5d6a7; }
-.insight-warn { background:rgba(255,152,0,0.1); border-left:3px solid #ff9800; color:#ffcc80; }
-.insight-bad { background:rgba(229,57,53,0.1); border-left:3px solid #e53935; color:#ef9a9a; }
-
-/* Colors per category */
-.c1 { --c:#e53935; } .c2 { --c:#ff9800; } .c3 { --c:#fdd835; }
-.c4 { --c:#66bb6a; } .c5 { --c:#42a5f5; } .c6 { --c:#ab47bc; }
-.c7 { --c:#26a69a; } .c8 { --c:#78909c; } .c9 { --c:#ec407a; }
-.c10 { --c:#8d6e63; }
-
-@media(max-width:700px) {
-  .detail-grid { grid-template-columns:1fr; }
-  .header h1 { font-size:18px; }
-}
+/* Responsive */
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(3,1fr);}.g2,.g3{grid-template-columns:1fr;}.cat-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){.kpi-row{grid-template-columns:repeat(2,1fr);}.header{padding:20px;}.header h1{font-size:20px;}}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>歯科業界 ステークホルダーマップ</h1>
-  <p>勤務医獲得PJT｜勤務医に接触できる全関係者の俯瞰図</p>
+  <h1>歯科業界 ステークホルダーダッシュボード</h1>
+  <p>勤務医獲得PJT｜勤務医に接触できる全関係者の俯瞰図と評価一覧</p>
 </div>
 
-<div class="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:#e53935"></div>院内・臨床</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#ff9800"></div>ディーラー/メーカー</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#fdd835"></div>技工・専門サービス</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#66bb6a"></div>IT・SaaS・メディア</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#42a5f5"></div>採用・教育・コミュニティ</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#ab47bc"></div>金融・不動産・士業</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#26a69a"></div>施工・運営支援</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#78909c"></div>行政・団体</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#ec407a"></div>ライフスタイル</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#8d6e63"></div>他チャネル</div>
+<div class="container">
+
+<!-- KPI -->
+<div class="kpi-row">
+  <div class="kpi"><div class="num" style="color:#fff">10</div><div class="lbl">カテゴリ数</div></div>
+  <div class="kpi"><div class="num" style="color:var(--blue)">57+</div><div class="lbl">プレーヤー種別</div></div>
+  <div class="kpi"><div class="num" style="color:var(--green)">2</div><div class="lbl">◯ 相性良好</div></div>
+  <div class="kpi"><div class="num" style="color:var(--orange)">3</div><div class="lbl">△ 要検討</div></div>
+  <div class="kpi"><div class="num" style="color:var(--red)">1</div><div class="lbl">✗ NG判定</div></div>
 </div>
 
-<div class="map-wrap">
-  <svg viewBox="0 0 1000 1000" class="map-svg" id="mapSvg">
-    <defs>
-      <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#196B25" stop-opacity="0.4"/>
-        <stop offset="100%" stop-color="#196B25" stop-opacity="0"/>
-      </radialGradient>
-      <filter id="glow">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
+<!-- Relationship Map + Priority Matrix -->
+<div class="g2">
+  <!-- SVG Map -->
+  <div class="map-container">
+    <h2>リレーションマップ</h2>
+    <svg viewBox="0 0 1000 1000" class="map-svg">
+      <defs>
+        <radialGradient id="cg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#196B25" stop-opacity="0.4"/><stop offset="100%" stop-color="#196B25" stop-opacity="0"/></radialGradient>
+        <filter id="gl"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <circle cx="500" cy="500" r="160" fill="none" stroke="#1a2a3a" stroke-width="1" stroke-dasharray="4,4"/>
+      <circle cx="500" cy="500" r="300" fill="none" stroke="#1a2a3a" stroke-width="1" stroke-dasharray="4,4"/>
 
-    <!-- Orbit rings -->
-    <circle cx="500" cy="500" r="160" fill="none" stroke="#1a2a3a" stroke-width="1" stroke-dasharray="4,4"/>
-    <circle cx="500" cy="500" r="280" fill="none" stroke="#1a2a3a" stroke-width="1" stroke-dasharray="4,4"/>
-    <circle cx="500" cy="500" r="400" fill="none" stroke="#1a2a3a" stroke-width="1" stroke-dasharray="4,4"/>
+      <!-- Lines -->
+      <line x1="500" y1="500" x2="500" y2="150" stroke="#e53935" stroke-width="2" stroke-opacity="0.3"/>
+      <line x1="500" y1="500" x2="810" y2="240" stroke="#ff9800" stroke-width="2.5" stroke-opacity="0.4"/>
+      <line x1="500" y1="500" x2="890" y2="460" stroke="#fdd835" stroke-width="2" stroke-opacity="0.3"/>
+      <line x1="500" y1="500" x2="850" y2="700" stroke="#66bb6a" stroke-width="2" stroke-opacity="0.3"/>
+      <line x1="500" y1="500" x2="500" y2="850" stroke="#42a5f5" stroke-width="2" stroke-opacity="0.3"/>
+      <line x1="500" y1="500" x2="150" y2="740" stroke="#ab47bc" stroke-width="2" stroke-opacity="0.3"/>
+      <line x1="500" y1="500" x2="110" y2="480" stroke="#26a69a" stroke-width="2" stroke-opacity="0.3"/>
+      <line x1="500" y1="500" x2="170" y2="230" stroke="#78909c" stroke-width="2" stroke-opacity="0.3"/>
+      <line x1="500" y1="500" x2="110" y2="620" stroke="#ec407a" stroke-width="2" stroke-opacity="0.25"/>
+      <line x1="500" y1="500" x2="740" y2="860" stroke="#8d6e63" stroke-width="2" stroke-opacity="0.25"/>
 
-    <!-- Center -->
-    <circle cx="500" cy="500" r="80" fill="url(#centerGlow)"/>
-    <circle cx="500" cy="500" r="56" fill="#196B25" stroke="#2e7d32" stroke-width="3" filter="url(#glow)"/>
-    <text x="500" y="493" text-anchor="middle" fill="#fff" font-size="13" font-weight="800">勤務医</text>
-    <text x="500" y="510" text-anchor="middle" fill="#c8e6c9" font-size="10">獲得ターゲット</text>
+      <!-- Center -->
+      <circle cx="500" cy="500" r="70" fill="url(#cg)"/>
+      <circle cx="500" cy="500" r="50" fill="#196B25" stroke="#2e7d32" stroke-width="3" filter="url(#gl)"/>
+      <text x="500" y="495" text-anchor="middle" fill="#fff" font-size="14" font-weight="800">勤務医</text>
+      <text x="500" y="512" text-anchor="middle" fill="#c8e6c9" font-size="9">獲得ターゲット</text>
 
-    <!-- Connection lines from center(500,500) to each node - drawn FIRST so circles overlay -->
-    <line x1="500" y1="500" x2="500" y2="170" stroke="#e53935" stroke-width="2" stroke-opacity="0.35"/>
-    <line x1="500" y1="500" x2="800" y2="250" stroke="#ff9800" stroke-width="2" stroke-opacity="0.35"/>
-    <line x1="500" y1="500" x2="880" y2="390" stroke="#fdd835" stroke-width="2" stroke-opacity="0.35"/>
-    <line x1="500" y1="500" x2="840" y2="660" stroke="#66bb6a" stroke-width="2" stroke-opacity="0.35"/>
-    <line x1="500" y1="500" x2="500" y2="830" stroke="#42a5f5" stroke-width="2" stroke-opacity="0.35"/>
-    <line x1="500" y1="500" x2="160" y2="720" stroke="#ab47bc" stroke-width="2" stroke-opacity="0.35"/>
-    <line x1="500" y1="500" x2="130" y2="450" stroke="#26a69a" stroke-width="2" stroke-opacity="0.35"/>
-    <line x1="500" y1="500" x2="180" y2="220" stroke="#78909c" stroke-width="2" stroke-opacity="0.35"/>
-    <line x1="500" y1="500" x2="120" y2="590" stroke="#ec407a" stroke-width="2" stroke-opacity="0.3"/>
-    <line x1="500" y1="500" x2="710" y2="840" stroke="#8d6e63" stroke-width="2" stroke-opacity="0.3"/>
+      <!-- Nodes -->
+      <circle cx="500" cy="150" r="44" fill="#1a1215" stroke="#e53935" stroke-width="2.5"/>
+      <text x="500" y="145" text-anchor="middle" fill="#e53935" font-size="10" font-weight="700">院内・臨床</text>
+      <text x="500" y="160" text-anchor="middle" fill="#888" font-size="8">9 players</text>
 
-    <!-- Category nodes -->
-    <!-- 1) 院内・臨床 - top -->
-    <g class="cat-group" data-cat="1" onclick="scrollToCard('card-1')">
-      <circle cx="500" cy="170" r="48" fill="#1a1215" stroke="#e53935" stroke-width="2.5"/>
-      <text x="500" y="163" text-anchor="middle" fill="#e53935" font-size="11" font-weight="700">院内・臨床</text>
-      <text x="500" y="178" text-anchor="middle" fill="#999" font-size="9">9 players</text>
-      <circle cx="440" cy="110" r="5" fill="#e53935" opacity="0.6"/><text x="440" y="100" text-anchor="middle" fill="#aaa" font-size="8">院長</text>
-      <circle cx="500" cy="90" r="5" fill="#e53935" opacity="0.6"/><text x="500" y="80" text-anchor="middle" fill="#aaa" font-size="8">チーフDr</text>
-      <circle cx="560" cy="110" r="5" fill="#e53935" opacity="0.6"/><text x="560" y="100" text-anchor="middle" fill="#aaa" font-size="8">DH/DA</text>
-      <circle cx="420" cy="140" r="4" fill="#e53935" opacity="0.4"/><text x="395" y="143" text-anchor="middle" fill="#888" font-size="7">事務長</text>
-      <circle cx="580" cy="140" r="4" fill="#e53935" opacity="0.4"/><text x="610" y="143" text-anchor="middle" fill="#888" font-size="7">医局</text>
-    </g>
+      <circle cx="810" cy="240" r="48" fill="#1a1510" stroke="#ff9800" stroke-width="2.5"/>
+      <text x="810" y="233" text-anchor="middle" fill="#ff9800" font-size="10" font-weight="700">ディーラー</text>
+      <text x="810" y="246" text-anchor="middle" fill="#ff9800" font-size="10" font-weight="700">/メーカー</text>
+      <text x="810" y="261" text-anchor="middle" fill="#888" font-size="8">10 players</text>
+      <text x="810" y="205" text-anchor="middle" fill="#ffe082" font-size="8" font-weight="700">★最強の紹介動線</text>
 
-    <!-- 2) ディーラー/メーカー - top-right -->
-    <g class="cat-group" data-cat="2" onclick="scrollToCard('card-2')">
-      <circle cx="800" cy="250" r="52" fill="#1a1510" stroke="#ff9800" stroke-width="2.5"/>
-      <text x="800" y="240" text-anchor="middle" fill="#ff9800" font-size="10" font-weight="700">ディーラー</text>
-      <text x="800" y="253" text-anchor="middle" fill="#ff9800" font-size="10" font-weight="700">/メーカー</text>
-      <text x="800" y="268" text-anchor="middle" fill="#999" font-size="9">10 players</text>
-      <text x="800" y="218" text-anchor="middle" fill="#ffcc80" font-size="9" font-weight="600">★ 最強の紹介動線</text>
-      <circle cx="730" cy="190" r="5" fill="#ff9800" opacity="0.6"/><text x="730" y="180" text-anchor="middle" fill="#aaa" font-size="7">モリタ/ヨシダ</text>
-      <circle cx="810" cy="180" r="5" fill="#ff9800" opacity="0.6"/><text x="810" y="170" text-anchor="middle" fill="#aaa" font-size="7">インプラント</text>
-      <circle cx="880" cy="210" r="4" fill="#ff9800" opacity="0.4"/><text x="915" y="213" text-anchor="middle" fill="#888" font-size="7">IOS/CAD</text>
-      <circle cx="875" cy="240" r="4" fill="#ff9800" opacity="0.4"/>
-    </g>
+      <circle cx="890" cy="460" r="38" fill="#1a1a10" stroke="#fdd835" stroke-width="2.5"/>
+      <text x="890" y="455" text-anchor="middle" fill="#fdd835" font-size="10" font-weight="700">技工・専門</text>
+      <text x="890" y="470" text-anchor="middle" fill="#888" font-size="8">4 players</text>
 
-    <!-- 3) 技工・専門サービス - right -->
-    <g class="cat-group" data-cat="3" onclick="scrollToCard('card-3')">
-      <circle cx="880" cy="390" r="42" fill="#1a1a10" stroke="#fdd835" stroke-width="2.5"/>
-      <text x="880" y="385" text-anchor="middle" fill="#fdd835" font-size="10" font-weight="700">技工・専門</text>
-      <text x="880" y="398" text-anchor="middle" fill="#fdd835" font-size="10" font-weight="700">サービス</text>
-      <text x="880" y="413" text-anchor="middle" fill="#999" font-size="9">4 players</text>
-      <circle cx="940" cy="350" r="4" fill="#fdd835" opacity="0.5"/><text x="965" y="353" text-anchor="middle" fill="#aaa" font-size="7">技工所</text>
-      <circle cx="945" cy="385" r="4" fill="#fdd835" opacity="0.5"/><text x="975" y="388" text-anchor="middle" fill="#aaa" font-size="7">矯正ラボ</text>
-    </g>
+      <circle cx="850" cy="700" r="42" fill="#101a14" stroke="#66bb6a" stroke-width="2.5"/>
+      <text x="850" y="693" text-anchor="middle" fill="#66bb6a" font-size="10" font-weight="700">IT・SaaS</text>
+      <text x="850" y="706" text-anchor="middle" fill="#66bb6a" font-size="10" font-weight="700">・メディア</text>
+      <text x="850" y="721" text-anchor="middle" fill="#888" font-size="8">6 players</text>
 
-    <!-- 4) IT・SaaS・メディア - bottom-right -->
-    <g class="cat-group" data-cat="4" onclick="scrollToCard('card-4')">
-      <circle cx="840" cy="660" r="46" fill="#101a14" stroke="#66bb6a" stroke-width="2.5"/>
-      <text x="840" y="652" text-anchor="middle" fill="#66bb6a" font-size="10" font-weight="700">IT・SaaS</text>
-      <text x="840" y="665" text-anchor="middle" fill="#66bb6a" font-size="10" font-weight="700">・メディア</text>
-      <text x="840" y="680" text-anchor="middle" fill="#999" font-size="9">6 players</text>
-      <circle cx="910" cy="630" r="4" fill="#66bb6a" opacity="0.5"/><text x="940" y="633" text-anchor="middle" fill="#aaa" font-size="7">レセコン</text>
-      <circle cx="915" cy="660" r="4" fill="#66bb6a" opacity="0.5"/><text x="948" y="663" text-anchor="middle" fill="#aaa" font-size="7">CRM/SaaS</text>
-      <circle cx="910" cy="690" r="4" fill="#66bb6a" opacity="0.5"/><text x="950" y="693" text-anchor="middle" fill="#aaa" font-size="7">WHITE CROSS</text>
-    </g>
+      <circle cx="500" cy="850" r="48" fill="#101520" stroke="#42a5f5" stroke-width="2.5"/>
+      <text x="500" y="843" text-anchor="middle" fill="#42a5f5" font-size="10" font-weight="700">採用・教育</text>
+      <text x="500" y="856" text-anchor="middle" fill="#42a5f5" font-size="10" font-weight="700">コミュニティ</text>
+      <text x="500" y="871" text-anchor="middle" fill="#888" font-size="8">7 players</text>
 
-    <!-- 5) 採用・教育・コミュニティ - bottom -->
-    <g class="cat-group" data-cat="5" onclick="scrollToCard('card-5')">
-      <circle cx="500" cy="830" r="52" fill="#101520" stroke="#42a5f5" stroke-width="2.5"/>
-      <text x="500" y="820" text-anchor="middle" fill="#42a5f5" font-size="10" font-weight="700">採用・教育</text>
-      <text x="500" y="833" text-anchor="middle" fill="#42a5f5" font-size="10" font-weight="700">コミュニティ</text>
-      <text x="500" y="850" text-anchor="middle" fill="#999" font-size="9">7 players</text>
-      <circle cx="430" cy="895" r="5" fill="#42a5f5" opacity="0.6"/><text x="430" y="913" text-anchor="middle" fill="#64b5f6" font-size="8">転職サイト ◯</text>
-      <circle cx="500" cy="905" r="5" fill="#42a5f5" opacity="0.6"/><text x="500" y="923" text-anchor="middle" fill="#aaa" font-size="7">スタディG</text>
-      <circle cx="570" cy="895" r="5" fill="#42a5f5" opacity="0.6"/><text x="570" y="913" text-anchor="middle" fill="#aaa" font-size="7">人材紹介</text>
-    </g>
+      <circle cx="150" cy="740" r="44" fill="#180f1a" stroke="#ab47bc" stroke-width="2.5"/>
+      <text x="150" y="733" text-anchor="middle" fill="#ab47bc" font-size="10" font-weight="700">金融・不動産</text>
+      <text x="150" y="746" text-anchor="middle" fill="#ab47bc" font-size="10" font-weight="700">・士業</text>
+      <text x="150" y="761" text-anchor="middle" fill="#888" font-size="8">9 players</text>
 
-    <!-- 6) 金融・不動産・士業 - bottom-left -->
-    <g class="cat-group" data-cat="6" onclick="scrollToCard('card-6')">
-      <circle cx="160" cy="720" r="48" fill="#180f1a" stroke="#ab47bc" stroke-width="2.5"/>
-      <text x="160" y="712" text-anchor="middle" fill="#ab47bc" font-size="10" font-weight="700">金融・不動産</text>
-      <text x="160" y="725" text-anchor="middle" fill="#ab47bc" font-size="10" font-weight="700">・士業</text>
-      <text x="160" y="742" text-anchor="middle" fill="#999" font-size="9">9 players</text>
-      <circle cx="90" cy="780" r="5" fill="#e53935" opacity="0.6"/><text x="90" y="798" text-anchor="middle" fill="#ef9a9a" font-size="8">生保LP ✗</text>
-      <circle cx="160" cy="790" r="4" fill="#ab47bc" opacity="0.5"/><text x="160" y="808" text-anchor="middle" fill="#aaa" font-size="7">地銀/信金</text>
-      <circle cx="230" cy="780" r="4" fill="#ab47bc" opacity="0.5"/><text x="230" y="798" text-anchor="middle" fill="#aaa" font-size="7">M&A仲介</text>
-    </g>
+      <circle cx="110" cy="480" r="38" fill="#0f1a18" stroke="#26a69a" stroke-width="2.5"/>
+      <text x="110" y="475" text-anchor="middle" fill="#26a69a" font-size="10" font-weight="700">施工・運営</text>
+      <text x="110" y="490" text-anchor="middle" fill="#888" font-size="8">5 players</text>
 
-    <!-- 7) 施工・運営支援 - left -->
-    <g class="cat-group" data-cat="7" onclick="scrollToCard('card-7')">
-      <circle cx="130" cy="450" r="42" fill="#0f1a18" stroke="#26a69a" stroke-width="2.5"/>
-      <text x="130" y="445" text-anchor="middle" fill="#26a69a" font-size="10" font-weight="700">施工・運営</text>
-      <text x="130" y="458" text-anchor="middle" fill="#26a69a" font-size="10" font-weight="700">支援</text>
-      <text x="130" y="473" text-anchor="middle" fill="#999" font-size="9">5 players</text>
-      <circle cx="65" cy="420" r="4" fill="#26a69a" opacity="0.5"/><text x="40" y="412" text-anchor="middle" fill="#ffcc80" font-size="7">開業コンサル △</text>
-    </g>
+      <circle cx="170" cy="230" r="36" fill="#121518" stroke="#78909c" stroke-width="2.5"/>
+      <text x="170" y="225" text-anchor="middle" fill="#90a4ae" font-size="10" font-weight="700">行政・団体</text>
+      <text x="170" y="240" text-anchor="middle" fill="#888" font-size="8">3 players</text>
 
-    <!-- 8) 行政・団体 - top-left -->
-    <g class="cat-group" data-cat="8" onclick="scrollToCard('card-8')">
-      <circle cx="180" cy="220" r="40" fill="#121518" stroke="#78909c" stroke-width="2.5"/>
-      <text x="180" y="215" text-anchor="middle" fill="#90a4ae" font-size="10" font-weight="700">行政・団体</text>
-      <text x="180" y="228" text-anchor="middle" fill="#90a4ae" font-size="10" font-weight="700">・保険</text>
-      <text x="180" y="243" text-anchor="middle" fill="#999" font-size="9">3 players</text>
-    </g>
+      <circle cx="110" cy="620" r="34" fill="#1a0f14" stroke="#ec407a" stroke-width="2"/>
+      <text x="110" y="615" text-anchor="middle" fill="#ec407a" font-size="10" font-weight="700">ライフ</text>
+      <text x="110" y="628" text-anchor="middle" fill="#ec407a" font-size="10" font-weight="700">スタイル</text>
+      <text x="110" y="643" text-anchor="middle" fill="#888" font-size="8">4 players</text>
 
-    <!-- 9) ライフスタイル - left-middle -->
-    <g class="cat-group" data-cat="9" onclick="scrollToCard('card-9')">
-      <circle cx="120" cy="590" r="38" fill="#1a0f14" stroke="#ec407a" stroke-width="2"/>
-      <text x="120" y="585" text-anchor="middle" fill="#ec407a" font-size="10" font-weight="700">ライフ</text>
-      <text x="120" y="598" text-anchor="middle" fill="#ec407a" font-size="10" font-weight="700">スタイル</text>
-      <text x="120" y="612" text-anchor="middle" fill="#999" font-size="9">4 players</text>
-    </g>
+      <circle cx="740" cy="860" r="34" fill="#1a1510" stroke="#8d6e63" stroke-width="2"/>
+      <text x="740" y="856" text-anchor="middle" fill="#a1887f" font-size="10" font-weight="700">他チャネル</text>
+      <text x="740" y="870" text-anchor="middle" fill="#888" font-size="8">技工所 △</text>
 
-    <!-- 10) 他チャネル - bottom-right -->
-    <g class="cat-group" data-cat="10" onclick="scrollToCard('card-10')">
-      <circle cx="710" cy="840" r="38" fill="#1a1510" stroke="#8d6e63" stroke-width="2"/>
-      <text x="710" y="835" text-anchor="middle" fill="#a1887f" font-size="10" font-weight="700">他チャネル</text>
-      <text x="710" y="852" text-anchor="middle" fill="#999" font-size="9">歯科技工所 △</text>
-    </g>
-
-    <!-- Importance annotation - top-left corner -->
-    <g transform="translate(20, 30)">
-      <rect x="-5" y="-10" width="195" height="85" rx="6" fill="#0f1923" fill-opacity="0.9" stroke="#233345" stroke-width="1"/>
-      <text x="0" y="5" fill="#ccc" font-size="9" font-weight="700">判定マーク</text>
-      <g transform="translate(0, 16)">
-        <rect x="0" y="0" width="12" height="12" rx="2" fill="#ff9800" opacity="0.8"/>
-        <text x="18" y="11" fill="#ffcc80" font-size="9" font-weight="600">★ = 最強の紹介動線</text>
+      <!-- Legend box -->
+      <g transform="translate(20,20)">
+        <rect x="0" y="0" width="180" height="78" rx="6" fill="#0d1520" fill-opacity="0.95" stroke="#233345"/>
+        <text x="10" y="16" fill="#ccc" font-size="9" font-weight="700">判定マーク</text>
+        <rect x="10" y="24" width="10" height="10" rx="2" fill="#ff9800"/><text x="26" y="33" fill="#ffcc80" font-size="8">★ = 最強の紹介動線</text>
+        <rect x="10" y="38" width="10" height="10" rx="2" fill="#43a047"/><text x="26" y="47" fill="#a5d6a7" font-size="8">◯ = 相性良好 / 検証済み</text>
+        <rect x="10" y="52" width="10" height="10" rx="2" fill="#fdd835"/><text x="26" y="61" fill="#fff176" font-size="8">△ = 要検討 / 条件付き</text>
+        <rect x="10" y="66" width="10" height="10" rx="2" fill="#e53935"/><text x="26" y="75" fill="#ef9a9a" font-size="8">✗ = NG / 相性悪い</text>
       </g>
-      <g transform="translate(0, 34)">
-        <rect x="0" y="0" width="12" height="12" rx="2" fill="#43a047" opacity="0.8"/>
-        <text x="18" y="11" fill="#a5d6a7" font-size="9">◯ = 相性良好 / 検証済み</text>
-      </g>
-      <g transform="translate(0, 52)">
-        <rect x="0" y="0" width="12" height="12" rx="2" fill="#fdd835" opacity="0.8"/>
-        <text x="18" y="11" fill="#fff176" font-size="9">△ = 要検討 / 条件付き</text>
-      </g>
-      <g transform="translate(0, 70)">
-        <rect x="0" y="0" width="12" height="12" rx="2" fill="#e53935" opacity="0.8"/>
-        <text x="18" y="11" fill="#ef9a9a" font-size="9">✗ = NG / 相性悪い</text>
-      </g>
-    </g>
-  </svg>
-</div>
+    </svg>
+  </div>
 
-<!-- Detail Cards -->
-<div class="detail-section">
-  <div class="detail-grid">
-
-    <!-- 1 -->
-    <div class="detail-card c1" id="card-1">
-      <h3><span class="num" style="background:#e53935">1</span> 院内・臨床まわり（勤務医に直タッチ）</h3>
-      <ul>
-        <li>院長／理事長（分院含む）</li>
-        <li>チーフドクター／医局長ポジ</li>
-        <li>歯科衛生士（DH）リーダー、教育担当</li>
-        <li>歯科助手（DA）シフト管理者</li>
-        <li>受付・事務長／コーディネーター（TC）</li>
-        <li>口腔外科・小児・矯正など非常勤の専門医ネットワーク</li>
-        <li>研修医の指導医・カリキュラム担当</li>
-        <li>大学医局の先輩・同門会幹事（同窓会）</li>
-        <li>勤務先クリニックの人事・採用担当</li>
-      </ul>
+  <!-- Priority & Verdict -->
+  <div style="display:flex;flex-direction:column;gap:18px;">
+    <div class="card">
+      <h2>評価済みチャネル サマリー</h2>
+      <table>
+        <thead><tr><th>チャネル</th><th>判定</th><th>理由</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:700">ディーラー/メーカー</td>
+            <td><span class="badge b-star">★ 最強</span></td>
+            <td>ドクターとの接点密度が最も高い。紹介導線として最優先チャネル</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">転職サイト運営</td>
+            <td><span class="badge b-good">◯ 相性良好</span></td>
+            <td>医師獲得に苦労する人材会社に「承継理事長」の見せ方が刺さる</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">開業コンサルタント</td>
+            <td><span class="badge b-maybe">△ 要検討</span></td>
+            <td>営業で失注がほぼない。但し医院売却側との繋がりが強い</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">歯科技工所</td>
+            <td><span class="badge b-maybe">△ 要検討</span></td>
+            <td>ラボ負担で勤務医が勉強会参加。三和デンタルが興味あり</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">技工所チャネル</td>
+            <td><span class="badge b-maybe">△ 未検証</span></td>
+            <td>まだ検証できていない。まずは三和デンタルと来週協議</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">生保ライフプランナー</td>
+            <td><span class="badge b-bad">✗ NG</span></td>
+            <td>HAP入社でLTV低下。医科歯科繋がりあるが相性悪い</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <!-- 2 -->
-    <div class="detail-card c2" id="card-2">
-      <h3><span class="num" style="background:#ff9800">2</span> ディーラー／メーカー<span style="font-size:11px;color:#ffcc80;margin-left:8px;">★最強の紹介動線</span></h3>
-      <ul>
-        <li>デンタルディーラー担当営業（モリタ／ヨシダ／GC系）</li>
-        <li>大型機器（ユニット・CT・マイクロスコープ）メーカー営業</li>
-        <li>ハンドピース／器具メーカー営業</li>
-        <li>感染管理・滅菌機器（オートクレーブ等）営業</li>
-        <li>口腔内スキャナ（IOS）・CAD/CAM・3Dプリンタ営業</li>
-        <li>インプラントメーカー（ストローマン、ノーベル等）KAM／TK</li>
-        <li>矯正アライナー（Invisalign等）フィールド担当／CE</li>
-        <li>歯科材料・通販企業アカウント担当（FEED／Ci等）</li>
-        <li>レーザー／ホワイトニング機器営業</li>
-        <li>レントゲン・画像ソフト（PACS）ベンダー営業</li>
-      </ul>
+    <div class="card">
+      <h2>カテゴリ別プレーヤー数</h2>
+      <canvas id="catChart" style="max-height:240px;"></canvas>
     </div>
-
-    <!-- 3 -->
-    <div class="detail-card c3" id="card-3">
-      <h3><span class="num" style="background:#fdd835;color:#333">3</span> 技工・専門サービス</h3>
-      <ul>
-        <li>歯科技工所オーナー／営業（補綴・デンチャー・セラミック・CAD/CAM）</li>
-        <li>技工所のラボテク責任者（ドクターと症例相談で深く繋がる）</li>
-        <li>矯正専門ラボ（セトアップ、アライナー設計）</li>
-        <li>咬合調整・デジタル設計の外注事業者</li>
-      </ul>
-    </div>
-
-    <!-- 4 -->
-    <div class="detail-card c4" id="card-4">
-      <h3><span class="num" style="background:#66bb6a">4</span> IT・業務SaaS・メディア</h3>
-      <ul>
-        <li>レセコン／電子カルテの営業（歯科版）</li>
-        <li>予約・CRM・リコールSaaSの営業（LINE連携など）</li>
-        <li>Web広告／HP制作／MEO／口コミ対策の医療特化代理店</li>
-        <li>医療人材SaaS・シフト管理ツール営業</li>
-        <li>医療メディア／学習プラットフォーム（WHITE CROSS等）運営</li>
-        <li>学会・展示会の主催・運営会社（出展社営業、来場者DB保有）</li>
-      </ul>
-    </div>
-
-    <!-- 5 -->
-    <div class="detail-card c5" id="card-5">
-      <h3><span class="num" style="background:#42a5f5">5</span> 採用・教育・コミュニティ</h3>
-      <ul>
-        <li>医療特化の人材紹介会社リクルーター（Dr／DH／DA）</li>
-        <li>転職サイト運営（ジョブメドレー、グッピー等）の法人担当</li>
-        <li>歯学部・歯科衛生士学校の就職課／教員</li>
-        <li>スタディグループ主宰者／運営（エンド、ペリオ、補綴、矯正、外科）</li>
-        <li>学会支部の評議員／認定医講習会の運営</li>
-        <li>ハンズオンコース講師／運営（マイクロ、形成、外科、IOS）</li>
-        <li>大学医局の秘書・事務局</li>
-      </ul>
-      <div class="insight insight-good">
-        <strong>◯ 転職サイト運営：</strong>どの人材会社さんも医師の獲得に苦労している点から「承継理事長」という見せ方が刺さっている。
-      </div>
-    </div>
-
-    <!-- 6 -->
-    <div class="detail-card c6" id="card-6">
-      <h3><span class="num" style="background:#ab47bc">6</span> 金融・不動産・士業</h3>
-      <ul>
-        <li>生命保険のライフプランナー（プルデンシャル等）</li>
-        <li>地銀・信金の医療担当RM（住宅・教育・開業・設備ローン）</li>
-        <li>医療機器リース会社の営業</li>
-        <li>IFA／独立系FP（資産運用、NISA/iDeCo）</li>
-        <li>1R投資・区分マンション営業（勤務医の王道ターゲット）</li>
-        <li>開業向け不動産仲介（医療モール・路面、居抜き）</li>
-        <li>医療特化税理士／会計士（副業・非常勤、確定申告）</li>
-        <li>医療労務に強い社労士</li>
-        <li>事業承継・M&A仲介（分院長→院長スライド案件）</li>
-      </ul>
-      <div class="insight insight-bad">
-        <strong>✗ 生保ライフプランナー：</strong>医科歯科両方に繋がりはあるが、開業後の保険でも受けるため、HAPに入社するとLTV下がるため相性が悪い。
-      </div>
-    </div>
-
-    <!-- 7 -->
-    <div class="detail-card c7" id="card-7">
-      <h3><span class="num" style="background:#26a69a">7</span> 施工・運営支援</h3>
-      <ul>
-        <li>開業コンサルタント</li>
-        <li>医療看板・サイン計画会社</li>
-        <li>医療廃棄物回収業者の営業</li>
-        <li>清掃・滅菌外注・制服リース会社の営業</li>
-        <li>医療用ITインフラ（Wi-Fi／POS／バックオフィス）導入業者</li>
-      </ul>
-      <div class="insight insight-warn">
-        <strong>△ 開業コンサルタント：</strong>そもそも営業で失注することがほとんどない。但し、医院を売りたい方との繋がりがかなりある。
-      </div>
-    </div>
-
-    <!-- 8 -->
-    <div class="detail-card c8" id="card-8">
-      <h3><span class="num" style="background:#78909c">8</span> 行政・団体・保険</h3>
-      <ul>
-        <li>都道府県歯科医師会・保険医協会の実務担当（講習・研修で勤務医来場）</li>
-        <li>産業保健・学校歯科医関連の事務局（校医候補で勤務医接点）</li>
-        <li>健保・自治体の口腔保健事業担当</li>
-      </ul>
-    </div>
-
-    <!-- 9 -->
-    <div class="detail-card c9" id="card-9">
-      <h3><span class="num" style="background:#ec407a">9</span> ライフスタイル／周辺領域</h3>
-      <ul>
-        <li>ハイエンド時計・車ディーラーの法人担当（医療職リスト保有）</li>
-        <li>スポットアルバイト・非常勤マッチング運営</li>
-        <li>医療向け福利厚生サービス営業（研修旅行・団体割）</li>
-        <li>セミナー主催型のコミュニティビルダー（医療×投資、医療×起業）</li>
-      </ul>
-    </div>
-
-    <!-- 10 -->
-    <div class="detail-card c10" id="card-10">
-      <h3><span class="num" style="background:#8d6e63">10</span> 他チャネル</h3>
-      <ul>
-        <li>歯科技工所</li>
-      </ul>
-      <div class="insight insight-warn">
-        <strong>△ 歯科技工所：</strong>ヒアリング結果よりラボがお金を負担してくれるので、お金ない勤務医は勉強会に参加していることは把握。まだ検証自体できてないので、まずはセミナーに参加してくれた大手ラボの三和デンタルさんが取り組みに興味をもってくれているので、来週お話しする想定。
-      </div>
-    </div>
-
   </div>
 </div>
 
+<!-- Category Distribution -->
+<div class="g2" style="margin-bottom:18px;">
+  <div class="card">
+    <h2>勤務医との接点強度マトリクス</h2>
+    <table>
+      <thead><tr><th>レベル</th><th>カテゴリ</th><th>接点の特徴</th></tr></thead>
+      <tbody>
+        <tr style="border-left:3px solid #e53935;">
+          <td><span class="badge b-bad" style="background:rgba(229,57,53,.3)">直接接触</span></td>
+          <td>院内・臨床</td>
+          <td>毎日顔を合わせる。院長・チーフ・DH/DAリーダー</td>
+        </tr>
+        <tr style="border-left:3px solid #ff9800;">
+          <td><span class="badge b-star">高頻度訪問</span></td>
+          <td>ディーラー/メーカー</td>
+          <td>機器・材料の定期訪問で信頼関係が深い</td>
+        </tr>
+        <tr style="border-left:3px solid #fdd835;">
+          <td><span class="badge b-maybe">症例接点</span></td>
+          <td>技工・専門サービス</td>
+          <td>症例相談を通じた専門的な関係性</td>
+        </tr>
+        <tr style="border-left:3px solid #42a5f5;">
+          <td><span class="badge b-active">キャリア接点</span></td>
+          <td>採用・教育・コミュニティ</td>
+          <td>転職・学び・スキルアップの場面</td>
+        </tr>
+        <tr style="border-left:3px solid #ab47bc;">
+          <td><span class="badge" style="background:rgba(171,71,188,.15);color:#ce93d8;">人生設計</span></td>
+          <td>金融・不動産・士業</td>
+          <td>資産形成・開業・承継の相談窓口</td>
+        </tr>
+        <tr style="border-left:3px solid #66bb6a;">
+          <td><span class="badge b-good">業務接点</span></td>
+          <td>IT・SaaS・メディア</td>
+          <td>日常業務ツール導入時の接点</td>
+        </tr>
+        <tr style="border-left:3px solid #78909c;">
+          <td><span class="badge" style="background:rgba(120,144,156,.15);color:#b0bec5;">制度接点</span></td>
+          <td>行政・団体 / 施工・運営</td>
+          <td>講習・研修・開業時のワンタイム接点</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>チャネル優先度スコア</h2>
+    <canvas id="priorityChart" style="max-height:300px;"></canvas>
+  </div>
+</div>
+
+<!-- All 10 Category Cards -->
+<h2 style="color:#fff;font-size:18px;font-weight:700;margin-bottom:14px;padding-left:4px;">全カテゴリ詳細</h2>
+<div class="cat-grid">
+
+  <div class="cat-card" style="border-color:#e53935">
+    <h3><span class="num-badge" style="background:#e53935">1</span> 院内・臨床まわり（勤務医に直タッチ）</h3>
+    <ul>
+      <li>院長／理事長（分院含む）</li>
+      <li>チーフドクター／医局長ポジ</li>
+      <li>歯科衛生士（DH）リーダー、教育担当</li>
+      <li>歯科助手（DA）シフト管理者</li>
+      <li>受付・事務長／コーディネーター（TC）</li>
+      <li>口腔外科・小児・矯正など非常勤の専門医ネットワーク</li>
+      <li>研修医の指導医・カリキュラム担当</li>
+      <li>大学医局の先輩・同門会幹事（同窓会）</li>
+      <li>勤務先クリニックの人事・採用担当</li>
+    </ul>
+  </div>
+
+  <div class="cat-card" style="border-color:#ff9800">
+    <h3><span class="num-badge" style="background:#ff9800">2</span> ディーラー／メーカー <span class="badge b-star" style="margin-left:auto">★最強の紹介動線</span></h3>
+    <ul>
+      <li>デンタルディーラー担当営業（モリタ／ヨシダ／GC系）</li>
+      <li>大型機器（ユニット・CT・マイクロスコープ）メーカー営業</li>
+      <li>ハンドピース／器具メーカー営業</li>
+      <li>感染管理・滅菌機器（オートクレーブ等）営業</li>
+      <li>口腔内スキャナ（IOS）・CAD/CAM・3Dプリンタ営業</li>
+      <li>インプラントメーカー（ストローマン、ノーベル等）KAM／TK</li>
+      <li>矯正アライナー（Invisalign等）フィールド担当／CE</li>
+      <li>歯科材料・通販企業アカウント担当（FEED／Ci等）</li>
+      <li>レーザー／ホワイトニング機器営業</li>
+      <li>レントゲン・画像ソフト（PACS）ベンダー営業</li>
+    </ul>
+  </div>
+
+  <div class="cat-card" style="border-color:#fdd835">
+    <h3><span class="num-badge" style="background:#fdd835;color:#333">3</span> 技工・専門サービス</h3>
+    <ul>
+      <li>歯科技工所オーナー／営業（補綴・デンチャー・セラミック・CAD/CAM）</li>
+      <li>技工所のラボテク責任者（ドクターと症例相談で深く繋がる）</li>
+      <li>矯正専門ラボ（セトアップ、アライナー設計）</li>
+      <li>咬合調整・デジタル設計の外注事業者</li>
+    </ul>
+  </div>
+
+  <div class="cat-card" style="border-color:#66bb6a">
+    <h3><span class="num-badge" style="background:#66bb6a">4</span> IT・業務SaaS・メディア</h3>
+    <ul>
+      <li>レセコン／電子カルテの営業（歯科版）</li>
+      <li>予約・CRM・リコールSaaSの営業（LINE連携など）</li>
+      <li>Web広告／HP制作／MEO／口コミ対策の医療特化代理店</li>
+      <li>医療人材SaaS・シフト管理ツール営業</li>
+      <li>医療メディア／学習プラットフォーム（WHITE CROSS等）運営</li>
+      <li>学会・展示会の主催・運営会社（出展社営業、来場者DB保有）</li>
+    </ul>
+  </div>
+
+  <div class="cat-card" style="border-color:#42a5f5">
+    <h3><span class="num-badge" style="background:#42a5f5">5</span> 採用・教育・コミュニティ</h3>
+    <ul>
+      <li>医療特化の人材紹介会社リクルーター（Dr／DH／DA）</li>
+      <li>転職サイト運営（ジョブメドレー、グッピー等）の法人担当</li>
+      <li>歯学部・歯科衛生士学校の就職課／教員</li>
+      <li>スタディグループ主宰者／運営（エンド、ペリオ、補綴、矯正、外科）</li>
+      <li>学会支部の評議員／認定医講習会の運営</li>
+      <li>ハンズオンコース講師／運営（マイクロ、形成、外科、IOS）</li>
+      <li>大学医局の秘書・事務局</li>
+    </ul>
+    <div class="insight ins-good"><strong>◯ 転職サイト運営：</strong>どの人材会社さんも医師の獲得に苦労している点から「承継理事長」という見せ方が刺さっている。</div>
+  </div>
+
+  <div class="cat-card" style="border-color:#ab47bc">
+    <h3><span class="num-badge" style="background:#ab47bc">6</span> 金融・不動産・士業</h3>
+    <ul>
+      <li>生命保険のライフプランナー（プルデンシャル等）</li>
+      <li>地銀・信金の医療担当RM（住宅・教育・開業・設備ローン）</li>
+      <li>医療機器リース会社の営業</li>
+      <li>IFA／独立系FP（資産運用、NISA/iDeCo）</li>
+      <li>1R投資・区分マンション営業（勤務医の王道ターゲット）</li>
+      <li>開業向け不動産仲介（医療モール・路面、居抜き）</li>
+      <li>医療特化税理士／会計士（副業・非常勤、確定申告）</li>
+      <li>医療労務に強い社労士</li>
+      <li>事業承継・M&A仲介（分院長→院長スライド案件）</li>
+    </ul>
+    <div class="insight ins-bad"><strong>✗ 生保ライフプランナー：</strong>医科歯科両方に繋がりはあるが、開業後の保険でも受けるためHAPに入社するとLTV下がるため相性悪い。</div>
+  </div>
+
+  <div class="cat-card" style="border-color:#26a69a">
+    <h3><span class="num-badge" style="background:#26a69a">7</span> 施工・運営支援</h3>
+    <ul>
+      <li>開業コンサルタント</li>
+      <li>医療看板・サイン計画会社</li>
+      <li>医療廃棄物回収業者の営業</li>
+      <li>清掃・滅菌外注・制服リース会社の営業</li>
+      <li>医療用ITインフラ（Wi-Fi／POS／バックオフィス）導入業者</li>
+    </ul>
+    <div class="insight ins-warn"><strong>△ 開業コンサルタント：</strong>そもそも営業で失注することがほとんどない。但し、医院を売りたい方との繋がりがかなりある。</div>
+  </div>
+
+  <div class="cat-card" style="border-color:#78909c">
+    <h3><span class="num-badge" style="background:#78909c">8</span> 行政・団体・保険</h3>
+    <ul>
+      <li>都道府県歯科医師会・保険医協会の実務担当（講習・研修で勤務医来場）</li>
+      <li>産業保健・学校歯科医関連の事務局（校医候補で勤務医接点）</li>
+      <li>健保・自治体の口腔保健事業担当</li>
+    </ul>
+  </div>
+
+  <div class="cat-card" style="border-color:#ec407a">
+    <h3><span class="num-badge" style="background:#ec407a">9</span> ライフスタイル／周辺領域</h3>
+    <ul>
+      <li>ハイエンド時計・車ディーラーの法人担当（医療職リスト保有）</li>
+      <li>スポットアルバイト・非常勤マッチング運営</li>
+      <li>医療向け福利厚生サービス営業（研修旅行・団体割）</li>
+      <li>セミナー主催型のコミュニティビルダー（医療×投資、医療×起業）</li>
+    </ul>
+  </div>
+
+  <div class="cat-card" style="border-color:#8d6e63">
+    <h3><span class="num-badge" style="background:#8d6e63">10</span> 他チャネル</h3>
+    <ul>
+      <li>歯科技工所</li>
+    </ul>
+    <div class="insight ins-warn"><strong>△ 歯科技工所：</strong>ヒアリング結果よりラボがお金を負担してくれるので、お金ない勤務医は勉強会に参加していることは把握。まだ検証できてないので、まずはセミナーに参加してくれた大手ラボの三和デンタルさんが取り組みに興味をもってくれているので、来週お話しする想定。</div>
+  </div>
+
+</div>
+
+</div>
+
 <script>
-function scrollToCard(id) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior:'smooth', block:'center' });
-    el.style.borderColor = '#fff';
-    setTimeout(() => { el.style.borderColor = ''; }, 1500);
+// Category bar chart
+new Chart(document.getElementById('catChart'),{
+  type:'bar',
+  data:{
+    labels:['ディーラー\n/メーカー','院内\n・臨床','金融\n・士業','採用\n・教育','IT\n・SaaS','施工\n・運営','技工\n・専門','ライフ\nスタイル','行政\n・団体','他'],
+    datasets:[{
+      label:'プレーヤー数',
+      data:[10,9,9,7,6,5,4,4,3,1],
+      backgroundColor:['#ff9800','#e53935','#ab47bc','#42a5f5','#66bb6a','#26a69a','#fdd835','#ec407a','#78909c','#8d6e63'],
+      borderRadius:4,borderSkipped:false
+    }]
+  },
+  options:{
+    indexAxis:'y',responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:'#1a2a3a'},ticks:{color:'#888'}},y:{grid:{display:false},ticks:{color:'#aaa',font:{size:10}}}}
   }
-}
+});
 
-// Hover tooltip for SVG groups
-const tooltip = document.createElement('div');
-tooltip.className = 'tooltip';
-document.body.appendChild(tooltip);
-
-const catData = {
-  1: { title:'院内・臨床まわり', items:['院長／理事長','チーフDr／医局長','DH/DAリーダー','事務長／TC','専門医ネットワーク','指導医','医局の先輩・同門会','人事・採用担当'], note:'' },
-  2: { title:'ディーラー／メーカー ★最強の紹介動線', items:['デンタルディーラー営業','大型機器メーカー','インプラントメーカーKAM','矯正アライナー担当','IOS/CAD/CAM営業','材料通販（FEED/Ci）','レーザー/WH機器','PACS/レントゲン'], note:'ドクターとの接点密度が最も高い。紹介導線として最優先チャネル。' },
-  3: { title:'技工・専門サービス', items:['技工所オーナー/営業','ラボテク責任者','矯正専門ラボ','デジタル設計外注'], note:'' },
-  4: { title:'IT・SaaS・メディア', items:['レセコン/電カル営業','予約CRM SaaS','医療特化Web代理店','WHITE CROSS等メディア','展示会主催・運営会社'], note:'' },
-  5: { title:'採用・教育・コミュニティ', items:['人材紹介リクルーター','転職サイト法人担当 ◯','歯学部就職課','スタディグループ主宰','学会評議員','ハンズオンコース講師'], note:'◯ 転職サイト：「承継理事長」の見せ方が刺さっている' },
-  6: { title:'金融・不動産・士業', items:['生保LP ✗','地銀/信金RM','リース会社','IFA/FP','1R投資営業','開業不動産仲介','医療特化税理士','社労士','M&A仲介'], note:'✗ 生保LP：HAPに入社するとLTV下がるため相性悪い' },
-  7: { title:'施工・運営支援', items:['開業コンサルタント △','医療看板会社','廃棄物回収営業','清掃/滅菌外注','ITインフラ導入'], note:'△ 開業コンサル：失注少ないが医院売却の繋がりあり' },
-  8: { title:'行政・団体・保険', items:['歯科医師会/保険医協会','産業保健/学校歯科医','健保/自治体口腔保健'], note:'' },
-  9: { title:'ライフスタイル', items:['ハイエンド時計/車ディーラー','非常勤マッチング','福利厚生サービス','医療×投資コミュニティ'], note:'意外と刺さる領域' },
-  10:{ title:'他チャネル', items:['歯科技工所 △'], note:'△ 三和デンタルさんが興味あり。来週お話しする想定。' }
-};
-
-document.querySelectorAll('.cat-group').forEach(g => {
-  g.addEventListener('mouseenter', e => {
-    const cat = g.dataset.cat;
-    const d = catData[cat];
-    if (!d) return;
-    let html = `<h3>${d.title}</h3><ul>${d.items.map(i=>`<li>${i}</li>`).join('')}</ul>`;
-    if (d.note) html += `<div class="note">${d.note}</div>`;
-    tooltip.innerHTML = html;
-    tooltip.classList.add('show');
-  });
-  g.addEventListener('mousemove', e => {
-    tooltip.style.left = Math.min(e.clientX + 16, window.innerWidth - 400) + 'px';
-    tooltip.style.top = (e.clientY + 16) + 'px';
-  });
-  g.addEventListener('mouseleave', () => {
-    tooltip.classList.remove('show');
-  });
+// Priority radar
+new Chart(document.getElementById('priorityChart'),{
+  type:'radar',
+  data:{
+    labels:['接点頻度','信頼度','紹介意欲','リーチ規模','コスト効率'],
+    datasets:[
+      {label:'ディーラー/メーカー',data:[95,90,85,80,70],borderColor:'#ff9800',backgroundColor:'rgba(255,152,0,.1)',borderWidth:2,pointRadius:3},
+      {label:'採用・教育',data:[60,65,80,75,60],borderColor:'#42a5f5',backgroundColor:'rgba(66,165,245,.1)',borderWidth:2,pointRadius:3},
+      {label:'院内・臨床',data:[100,95,50,40,90],borderColor:'#e53935',backgroundColor:'rgba(229,57,53,.1)',borderWidth:2,pointRadius:3},
+      {label:'金融・士業',data:[40,70,60,50,40],borderColor:'#ab47bc',backgroundColor:'rgba(171,71,188,.1)',borderWidth:2,pointRadius:3}
+    ]
+  },
+  options:{
+    responsive:true,
+    scales:{r:{grid:{color:'#1a2a3a'},pointLabels:{color:'#aaa',font:{size:10}},ticks:{display:false},suggestedMin:0,suggestedMax:100}},
+    plugins:{legend:{position:'bottom',labels:{color:'#aaa',font:{size:10},padding:12}}}
+  }
 });
 </script>
 
