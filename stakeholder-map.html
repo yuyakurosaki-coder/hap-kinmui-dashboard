@@ -138,16 +138,16 @@ body { font-family:'Segoe UI','Hiragino Sans','Hiragino Kaku Gothic ProN',sans-s
 
     <!-- 2) ディーラー/メーカー - top-right -->
     <g class="cat-group" data-cat="2" onclick="scrollToCard('card-2')">
-      <line x1="540" y1="448" x2="780" y2="200" stroke="#ff9800" stroke-width="1.5" stroke-opacity="0.4"/>
-      <circle cx="800" cy="180" r="52" fill="#1a1510" stroke="#ff9800" stroke-width="2.5"/>
-      <text x="800" y="170" text-anchor="middle" fill="#ff9800" font-size="10" font-weight="700">ディーラー</text>
-      <text x="800" y="183" text-anchor="middle" fill="#ff9800" font-size="10" font-weight="700">/メーカー</text>
-      <text x="800" y="198" text-anchor="middle" fill="#999" font-size="9">10 players</text>
-      <text x="800" y="145" text-anchor="middle" fill="#ffcc80" font-size="9" font-weight="600">最強の紹介動線</text>
-      <circle cx="740" cy="120" r="5" fill="#ff9800" opacity="0.6"/><text x="740" y="110" text-anchor="middle" fill="#aaa" font-size="7">モリタ/ヨシダ</text>
-      <circle cx="810" cy="110" r="5" fill="#ff9800" opacity="0.6"/><text x="810" y="100" text-anchor="middle" fill="#aaa" font-size="7">インプラント</text>
-      <circle cx="870" cy="130" r="4" fill="#ff9800" opacity="0.4"/><text x="900" y="133" text-anchor="middle" fill="#888" font-size="7">IOS/CAD</text>
-      <circle cx="860" cy="160" r="4" fill="#ff9800" opacity="0.4"/>
+      <line x1="540" y1="448" x2="780" y2="250" stroke="#ff9800" stroke-width="1.5" stroke-opacity="0.4"/>
+      <circle cx="800" cy="250" r="52" fill="#1a1510" stroke="#ff9800" stroke-width="2.5"/>
+      <text x="800" y="240" text-anchor="middle" fill="#ff9800" font-size="10" font-weight="700">ディーラー</text>
+      <text x="800" y="253" text-anchor="middle" fill="#ff9800" font-size="10" font-weight="700">/メーカー</text>
+      <text x="800" y="268" text-anchor="middle" fill="#999" font-size="9">10 players</text>
+      <text x="800" y="218" text-anchor="middle" fill="#ffcc80" font-size="9" font-weight="600">★ 最強の紹介動線</text>
+      <circle cx="730" cy="190" r="5" fill="#ff9800" opacity="0.6"/><text x="730" y="180" text-anchor="middle" fill="#aaa" font-size="7">モリタ/ヨシダ</text>
+      <circle cx="810" cy="180" r="5" fill="#ff9800" opacity="0.6"/><text x="810" y="170" text-anchor="middle" fill="#aaa" font-size="7">インプラント</text>
+      <circle cx="880" cy="210" r="4" fill="#ff9800" opacity="0.4"/><text x="915" y="213" text-anchor="middle" fill="#888" font-size="7">IOS/CAD</text>
+      <circle cx="875" cy="240" r="4" fill="#ff9800" opacity="0.4"/>
     </g>
 
     <!-- 3) 技工・専門サービス - right -->
@@ -233,22 +233,26 @@ body { font-family:'Segoe UI','Hiragino Sans','Hiragino Kaku Gothic ProN',sans-s
       <text x="710" y="852" text-anchor="middle" fill="#999" font-size="9">歯科技工所 △</text>
     </g>
 
-    <!-- Importance annotation -->
-    <g transform="translate(780, 130)">
-      <rect x="0" y="0" width="12" height="12" rx="2" fill="#ff9800" opacity="0.8"/>
-      <text x="18" y="11" fill="#ffcc80" font-size="9" font-weight="600">= 最強の紹介動線</text>
-    </g>
-    <g transform="translate(780, 148)">
-      <rect x="0" y="0" width="12" height="12" rx="2" fill="#43a047" opacity="0.8"/>
-      <text x="18" y="11" fill="#a5d6a7" font-size="9">◯ = 相性良好 / 検証済み</text>
-    </g>
-    <g transform="translate(780, 166)">
-      <rect x="0" y="0" width="12" height="12" rx="2" fill="#fdd835" opacity="0.8"/>
-      <text x="18" y="11" fill="#fff176" font-size="9">△ = 要検討 / 条件付き</text>
-    </g>
-    <g transform="translate(780, 184)">
-      <rect x="0" y="0" width="12" height="12" rx="2" fill="#e53935" opacity="0.8"/>
-      <text x="18" y="11" fill="#ef9a9a" font-size="9">✗ = NG / 相性悪い</text>
+    <!-- Importance annotation - top-left corner -->
+    <g transform="translate(20, 30)">
+      <rect x="-5" y="-10" width="195" height="85" rx="6" fill="#0f1923" fill-opacity="0.9" stroke="#233345" stroke-width="1"/>
+      <text x="0" y="5" fill="#ccc" font-size="9" font-weight="700">判定マーク</text>
+      <g transform="translate(0, 16)">
+        <rect x="0" y="0" width="12" height="12" rx="2" fill="#ff9800" opacity="0.8"/>
+        <text x="18" y="11" fill="#ffcc80" font-size="9" font-weight="600">★ = 最強の紹介動線</text>
+      </g>
+      <g transform="translate(0, 34)">
+        <rect x="0" y="0" width="12" height="12" rx="2" fill="#43a047" opacity="0.8"/>
+        <text x="18" y="11" fill="#a5d6a7" font-size="9">◯ = 相性良好 / 検証済み</text>
+      </g>
+      <g transform="translate(0, 52)">
+        <rect x="0" y="0" width="12" height="12" rx="2" fill="#fdd835" opacity="0.8"/>
+        <text x="18" y="11" fill="#fff176" font-size="9">△ = 要検討 / 条件付き</text>
+      </g>
+      <g transform="translate(0, 70)">
+        <rect x="0" y="0" width="12" height="12" rx="2" fill="#e53935" opacity="0.8"/>
+        <text x="18" y="11" fill="#ef9a9a" font-size="9">✗ = NG / 相性悪い</text>
+      </g>
     </g>
   </svg>
 </div>
