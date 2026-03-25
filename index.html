@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HAP 勤務医獲得PJT ダッシュボード (2025/11〜2026/3)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --brand: #196B25;
+  --brand-light: #e8f5e9;
+  --red: #e53935;
+  --orange: #ff9800;
+  --yellow: #fdd835;
+  --green: #43a047;
+  --blue: #1e88e5;
+  --gray: #f5f5f5;
+  --dark: #212121;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI','Hiragino Sans',sans-serif; background:#f0f2f5; color:var(--dark); }
+.header { background: linear-gradient(135deg, var(--brand) 0%, #2e7d32 100%); color:#fff; padding:32px 40px 24px; }
+.header h1 { font-size:28px; font-weight:700; }
+.header p { opacity:0.85; margin-top:4px; font-size:14px; }
+.container { max-width:1280px; margin:0 auto; padding:24px 20px 60px; }
+
+/* KPI Row */
+.kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+.kpi-card { background:#fff; border-radius:12px; padding:20px 24px; box-shadow:var(--card-shadow); text-align:center; position:relative; overflow:hidden; }
+.kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; }
+.kpi-card.red::before { background:var(--red); }
+.kpi-card.orange::before { background:var(--orange); }
+.kpi-card.green::before { background:var(--green); }
+.kpi-card.blue::before { background:var(--blue); }
+.kpi-label { font-size:12px; color:#888; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+.kpi-value { font-size:36px; font-weight:800; margin:8px 0 4px; }
+.kpi-sub { font-size:13px; color:#666; }
+.kpi-target { font-size:12px; color:#999; margin-top:4px; }
+.kpi-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:700; margin-top:6px; }
+.badge-red { background:#ffebee; color:var(--red); }
+.badge-orange { background:#fff3e0; color:#e65100; }
+.badge-green { background:#e8f5e9; color:var(--green); }
+
+/* Cards */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-bottom:24px; }
+.card { background:#fff; border-radius:12px; padding:24px; box-shadow:var(--card-shadow); }
+.card h2 { font-size:16px; font-weight:700; margin-bottom:16px; color:var(--brand); border-left:4px solid var(--brand); padding-left:12px; }
+.card-full { grid-column:1/-1; }
+
+/* Funnel */
+.funnel { display:flex; flex-direction:column; gap:8px; }
+.funnel-step { display:flex; align-items:center; gap:12px; }
+.funnel-bar { height:40px; border-radius:6px; display:flex; align-items:center; padding:0 16px; color:#fff; font-weight:700; font-size:14px; min-width:60px; transition: width 0.8s ease; }
+.funnel-label { font-size:13px; color:#555; min-width:140px; text-align:right; }
+.funnel-num { font-size:13px; color:#888; min-width:60px; }
+
+/* Timeline */
+.timeline { position:relative; padding-left:24px; }
+.timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:3px; background:#e0e0e0; border-radius:2px; }
+.tl-item { position:relative; margin-bottom:20px; }
+.tl-item::before { content:''; position:absolute; left:-20px; top:4px; width:14px; height:14px; border-radius:50%; border:3px solid var(--brand); background:#fff; }
+.tl-item.highlight::before { background:var(--brand); }
+.tl-month { font-size:14px; font-weight:700; color:var(--brand); }
+.tl-title { font-size:13px; font-weight:600; margin:2px 0; }
+.tl-desc { font-size:12px; color:#666; line-height:1.5; }
+
+/* Channel Table */
+.ch-table { width:100%; border-collapse:collapse; font-size:13px; }
+.ch-table th { background:var(--brand); color:#fff; padding:10px 12px; text-align:left; font-weight:600; }
+.ch-table td { padding:10px 12px; border-bottom:1px solid #eee; }
+.ch-table tr:hover td { background:#f9f9f9; }
+.status { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; }
+.st-active { background:#e8f5e9; color:var(--green); }
+.st-done { background:#e3f2fd; color:var(--blue); }
+.st-test { background:#fff3e0; color:#e65100; }
+.st-plan { background:#f3e5f5; color:#7b1fa2; }
+.st-ng { background:#ffebee; color:var(--red); }
+
+/* Issues */
+.issue-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f0f0f0; }
+.issue-row:last-child { border:none; }
+.issue-status { font-size:11px; font-weight:700; padding:3px 10px; border-radius:12px; white-space:nowrap; }
+.is-resolved { background:#e8f5e9; color:var(--green); }
+.is-ongoing { background:#fff3e0; color:#e65100; }
+.is-pending { background:#ffebee; color:var(--red); }
+.issue-text { font-size:13px; flex:1; }
+.issue-action { font-size:12px; color:#888; }
+
+/* Next */
+.next-item { padding:14px 16px; border-radius:8px; margin-bottom:10px; border-left:4px solid; }
+.next-item h4 { font-size:14px; font-weight:700; margin-bottom:4px; }
+.next-item p { font-size:12px; color:#555; line-height:1.5; }
+.ni-1 { background:#fce4ec; border-color:var(--red); }
+.ni-2 { background:#e8f5e9; border-color:var(--green); }
+.ni-3 { background:#e3f2fd; border-color:var(--blue); }
+.ni-4 { background:#fff3e0; border-color:var(--orange); }
+.ni-5 { background:#f3e5f5; border-color:#7b1fa2; }
+
+/* Team */
+.team-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.team-member { text-align:center; padding:16px 8px; border-radius:8px; background:var(--gray); }
+.team-member .avatar { width:48px; height:48px; border-radius:50%; background:var(--brand); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; margin-bottom:8px; }
+.team-member .name { font-size:13px; font-weight:700; }
+.team-member .role { font-size:11px; color:#888; margin-top:2px; }
+
+/* Ad Metrics */
+.ad-metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.ad-metric { text-align:center; padding:16px; border-radius:8px; background:var(--gray); }
+.ad-metric .val { font-size:24px; font-weight:800; color:var(--brand); }
+.ad-metric .lbl { font-size:11px; color:#888; margin-top:4px; }
+
+/* Progress bar */
+.progress-wrap { margin-top:8px; }
+.progress-bar { height:10px; background:#e0e0e0; border-radius:5px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:5px; transition: width 1s ease; }
+
+/* Responsive */
+@media (max-width:900px) {
+  .kpi-row { grid-template-columns:repeat(2,1fr); }
+  .grid-2, .grid-3 { grid-template-columns:1fr; }
+  .team-grid { grid-template-columns:repeat(2,1fr); }
+  .ad-metrics { grid-template-columns:repeat(2,1fr); }
+}
+@media (max-width:600px) {
+  .kpi-row { grid-template-columns:1fr; }
+  .header { padding:20px; }
+  .header h1 { font-size:20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>ヘルスケア共創機構 勤務医獲得PJT</h1>
+  <p>振り返りダッシュボード｜2025年11月〜2026年3月｜レポート作成日: 2025/7/2</p>
+</div>
+
+<div class="container">
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <div class="kpi-card orange">
+      <div class="kpi-label">勤務医獲得（集客）</div>
+      <div class="kpi-value">19<span style="font-size:18px">件</span></div>
+      <div class="kpi-sub">目標 42名</div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" style="width:45%;background:var(--orange)"></div></div>
+      </div>
+      <span class="kpi-badge badge-orange">達成率 45%</span>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">選考開始</div>
+      <div class="kpi-value">3<span style="font-size:18px">件</span></div>
+      <div class="kpi-sub">目標 14名</div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" style="width:21%;background:var(--red)"></div></div>
+      </div>
+      <span class="kpi-badge badge-red">達成率 21%</span>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">内定</div>
+      <div class="kpi-value">0<span style="font-size:18px">件</span></div>
+      <div class="kpi-sub">目標 7名</div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--red)"></div></div>
+      </div>
+      <span class="kpi-badge badge-red">達成率 0%</span>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">内定承諾</div>
+      <div class="kpi-value">0<span style="font-size:18px">件</span></div>
+      <div class="kpi-sub">目標 4名</div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--red)"></div></div>
+      </div>
+      <span class="kpi-badge badge-red">達成率 0%</span>
+    </div>
+  </div>
+
+  <!-- Funnel + Breakdown -->
+  <div class="grid-2">
+    <div class="card">
+      <h2>獲得ファネル</h2>
+      <div class="funnel">
+        <div class="funnel-step">
+          <div class="funnel-label">認知・リーチ</div>
+          <div class="funnel-bar" style="width:100%;background:#1565c0;">FB広告 6,338imp / セミナー100名 / 展示会 2,254Dr / メルマガ 830件</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">LP訪問/セミナー集客</div>
+          <div class="funnel-bar" style="width:65%;background:#1e88e5;">FB広告 277click / CTR 4.37% / セミナー 70名着座 / スマホ98%</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">リード獲得</div>
+          <div class="funnel-bar" style="width:35%;background:#42a5f5;">FB広告CV 1件 / 個別相談 2件 / 資料送付 14件 / LINE紹介 1件</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">ナーチャリング</div>
+          <div class="funnel-bar" style="width:25%;background:#64b5f6;">HubSpotメール / LINE自動応答</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">アポ取り・面談</div>
+          <div class="funnel-bar" style="width:15%;background:#90caf9;color:#333;">藤井先生 1件 / 大阪5億 1件 / コミュニティ 1件</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">選考・提案</div>
+          <div class="funnel-bar" style="width:8%;background:#bbdefb;color:#333;">目標: 14名→7内定</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">内定承諾</div>
+          <div class="funnel-bar" style="width:5%;background:#e3f2fd;color:#333;">目標: 4名</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>実績内訳</h2>
+      <div style="height:280px;display:flex;align-items:center;justify-content:center;">
+        <canvas id="breakdownChart"></canvas>
+      </div>
+      <div style="margin-top:16px;padding:14px;background:var(--gray);border-radius:8px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:6px;">選考開始 3件</div>
+        <div style="font-size:12px;color:#666;line-height:1.6;">
+          ・藤井先生（承継興味あり）<br>
+          ・大阪5億円以上医院<br>
+          ・コミュニティ経由アポ
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FB Ad Metrics -->
+  <div class="card" style="margin-bottom:24px;">
+    <h2>FB広告パフォーマンス</h2>
+    <div class="ad-metrics">
+      <div class="ad-metric">
+        <div class="val">¥26.9</div>
+        <div class="lbl">CPC</div>
+      </div>
+      <div class="ad-metric">
+        <div class="val">4.37%</div>
+        <div class="lbl">CTR</div>
+      </div>
+      <div class="ad-metric">
+        <div class="val">6,338</div>
+        <div class="lbl">インプレッション</div>
+      </div>
+      <div class="ad-metric">
+        <div class="val">277</div>
+        <div class="lbl">クリック</div>
+      </div>
+      <div class="ad-metric">
+        <div class="val">1件</div>
+        <div class="lbl">CV</div>
+      </div>
+      <div class="ad-metric">
+        <div class="val">¥15万</div>
+        <div class="lbl">月予算（採用LP10万+セミナー5万）</div>
+      </div>
+      <div class="ad-metric">
+        <div class="val">98%</div>
+        <div class="lbl">スマホ比率</div>
+      </div>
+      <div class="ad-metric">
+        <div class="val">10</div>
+        <div class="lbl">広告コピーパターン</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Channel Table + Chart -->
+  <div class="grid-2">
+    <div class="card">
+      <h2>チャネル別 施策と判断</h2>
+      <table class="ch-table">
+        <thead>
+          <tr><th>カテゴリ</th><th>チャネル</th><th>ステータス</th><th>成果・備考</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>オンライン</td><td>FB広告（Meta）</td><td><span class="status st-active">稼働中</span></td><td>CPC ¥26.9 / CTR 4.37% / CV 1件</td></tr>
+          <tr><td>オンライン</td><td>LP</td><td><span class="status st-done">改修済</span></td><td>3/10全面改修、適性診断CTA導入</td></tr>
+          <tr><td>オンライン</td><td>HubSpotメルマガ</td><td><span class="status st-active">稼働中</span></td><td>ハウスリスト130件＋グループ約700件</td></tr>
+          <tr><td>オンライン</td><td>PR TIMES</td><td><span class="status st-plan">準備完了</span></td><td>アカウント作成済、無料枠あり</td></tr>
+          <tr><td>オフライン</td><td>共催セミナー</td><td><span class="status st-done">最大成果</span></td><td>千賀先生：100名予約/70名着座</td></tr>
+          <tr><td>オフライン</td><td>展示会</td><td><span class="status st-done">実施済</span></td><td>事務長1件興味あり→4月以降共有</td></tr>
+          <tr><td>オフライン</td><td>架電</td><td><span class="status st-test">課題あり</span></td><td>留守電→折返しなし、難航</td></tr>
+          <tr><td>オフライン</td><td>スタディグループDM</td><td><span class="status st-test">テスト中</span></td><td>10社以上DM→1件アポ獲得</td></tr>
+          <tr><td>アライアンス</td><td>クオキャリア</td><td><span class="status st-active">契約済</span></td><td>メルマガ・セミナー施策へ</td></tr>
+          <tr><td>アライアンス</td><td>IBJ</td><td><span class="status st-plan">4月〜</span></td><td>歯科医師500人、人材紹介許可が条件</td></tr>
+          <tr><td>アライアンス</td><td>SABU / soeasy</td><td><span class="status st-active">協業中</span></td><td>共催セミナーパートナー</td></tr>
+          <tr><td>アライアンス</td><td>SCO / GENOVA / 日本ビスカ</td><td><span class="status st-test">検討中</span></td><td>共催セミナー・連携を協議中</td></tr>
+          <tr><td>アライアンス</td><td>紹介制度</td><td><span class="status st-done">設計済</span></td><td>面談実施で5,000円、紹介LP作成済</td></tr>
+          <tr><td>撤退</td><td>技工所チャネル</td><td><span class="status st-ng">撤退</span></td><td>構造的に難しいと判断</td></tr>
+          <tr><td>撤退</td><td>フィード連携</td><td><span class="status st-ng">NG</span></td><td>増岡氏と意見交換後、見送り</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>数値サマリー</h2>
+      <table class="ch-table">
+        <thead><tr><th>指標</th><th>実績</th><th>備考</th></tr></thead>
+        <tbody>
+          <tr><td>承継実績</td><td><strong>約25医院</strong></td><td>22＋直近確定3件</td></tr>
+          <tr><td>千賀セミナー予約/着座</td><td><strong>100名 / 70名</strong></td><td>2/12実施・最大成果</td></tr>
+          <tr><td>個別相談希望</td><td><strong>2件</strong></td><td>うち大阪5億円以上医院1件</td></tr>
+          <tr><td>資料送付希望</td><td><strong>14件</strong></td><td>セミナー経由</td></tr>
+          <tr><td>FB広告 CPC</td><td><strong>¥26.9</strong></td><td>CTR 4.37%</td></tr>
+          <tr><td>IBJ歯科医師登録数</td><td><strong>500人</strong></td><td>男女比50:50</td></tr>
+          <tr><td>人材紹介許可</td><td><strong>4/1確定</strong></td><td>届出提出済み</td></tr>
+          <tr><td>FB広告月予算</td><td><strong>採用LP10万/セミナー5万</strong></td><td></td></tr>
+          <tr><td>LPデバイス比率</td><td><strong>スマホ98%</strong></td><td></td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:20px;">
+        <h2 style="font-size:16px;font-weight:700;color:var(--brand);border-left:4px solid var(--brand);padding-left:12px;margin-bottom:12px;">目標</h2>
+        <div style="padding:14px;background:#fff8e1;border-radius:8px;font-size:13px;line-height:1.8;">
+          <strong>中期目標（3年）:</strong> 100名の内定承諾（1,000名の勤務医集客）<br>
+          <strong>短期目標（2026年3月末）:</strong> 4名の内定承諾（7名内定 / 14名選考開始 / 42名集客）<br>
+          <strong>ビジョン:</strong> 日本一の「勤務医歯科医師」「雇われ理事長」コミュニティ創出
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline + Team -->
+  <div class="grid-2">
+    <div class="card">
+      <h2>月別マイルストーン</h2>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-month">2025年11月</div>
+          <div class="tl-title">PJT始動・基盤構築</div>
+          <div class="tl-desc">
+            目標設定（中期・短期）/ 間宮がリスト全件架電→1件アポ獲得（藤井先生）/
+            クオキャリア提携・SABU共催セミナー企画開始 / 導線設計（LINE→Googleフォーム→カレンダー）/
+            デンタルショー来場者9,558人・ドクター2,254人
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-month">2025年12月</div>
+          <div class="tl-title">ブランド確立・IBJ連携・人材紹介構想</div>
+          <div class="tl-desc">
+            LP制作開始（ブランドカラー深緑 #196B25）/ DENTAL EXECUTIVE AGENT構想 /
+            クオキャリア契約締結 / IBJ訪問（歯科医師500人登録）/ 鉢嶺LINE経由で紹介第1号獲得 /
+            技工所チャネル→撤退判断
+          </div>
+        </div>
+        <div class="tl-item highlight">
+          <div class="tl-month">2026年1月</div>
+          <div class="tl-title">LP公開・広告開始・セミナー本格始動</div>
+          <div class="tl-desc">
+            LP公開（dentist-recruit.hap-corp.co.jp）/ FBアカウント問題解消→別アカウントで広告開始 /
+            千賀先生セミナー2/12確定 / 人材紹介届出提出 / PR TIMESアカウント作成 / HubSpotメール配信開始
+          </div>
+        </div>
+        <div class="tl-item highlight">
+          <div class="tl-month" style="color:var(--red);font-size:15px;">2026年2月 — 最大成果月</div>
+          <div class="tl-title">セミナー実施・広告運用・協業先拡大</div>
+          <div class="tl-desc">
+            千賀先生×SABUセミナー（100名予約/70名着座/個別相談2件/資料送付14件）/
+            FB広告本格運用（10パターンテスト）/ LP分析→TimeRex切替 /
+            中部デンタルショー（事務長1件興味）/ 協業先急拡大（SCO・GENOVA・日本ビスカ・Equitas Medical）/
+            甘田光がFB広告担当として参画
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-month">2026年3月（〜3/10）</div>
+          <div class="tl-title">LP改修・セミナー準備・次フェーズへ</div>
+          <div class="tl-desc">
+            3/12 dentwave共催セミナー準備 / LP全面改修（FV訴求刷新・適性診断CTA）/
+            人材紹介許可 4/1確定 / 開業コミュニティから1件アポ獲得
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>プロジェクト体制</h2>
+      <div class="team-grid">
+        <div class="team-member">
+          <div class="avatar">間</div>
+          <div class="name">間宮亮太</div>
+          <div class="role">HAP経営陣・セールス<br>キャリア面談担当</div>
+        </div>
+        <div class="team-member">
+          <div class="avatar">鉢</div>
+          <div class="name">鉢嶺寛太</div>
+          <div class="role">マーケティング<br>ウェビナー・広告運用</div>
+        </div>
+        <div class="team-member">
+          <div class="avatar" style="background:#1565c0;">黒</div>
+          <div class="name">黒崎勇也</div>
+          <div class="role">プロジェクトリーダー<br>（eap側）・運営</div>
+        </div>
+        <div class="team-member">
+          <div class="avatar" style="background:#e65100;">甘</div>
+          <div class="name">甘田光</div>
+          <div class="role">FB広告運用レポート<br>（2月参画）</div>
+        </div>
+        <div class="team-member">
+          <div class="avatar" style="background:#6a1b9a;">鈴</div>
+          <div class="name">鈴木達也</div>
+          <div class="role">OPix営業<br>展示会担当</div>
+        </div>
+        <div class="team-member">
+          <div class="avatar" style="background:#00838f;">山</div>
+          <div class="name">山木さん</div>
+          <div class="role">LP・LINE設定<br>サポート</div>
+        </div>
+      </div>
+
+      <!-- Issues -->
+      <h2 style="font-size:16px;font-weight:700;color:var(--brand);border-left:4px solid var(--brand);padding-left:12px;margin:24px 0 12px;">課題と今後のアクション</h2>
+      <div>
+        <div class="issue-row">
+          <span class="issue-status is-resolved">解消済み</span>
+          <span class="issue-text">FB広告アカウント問題</span>
+          <span class="issue-action">甘田が運用体制を引き継ぎ</span>
+        </div>
+        <div class="issue-row">
+          <span class="issue-status is-resolved">対応済み</span>
+          <span class="issue-text">LP→LINE導線の離脱率が高い</span>
+          <span class="issue-action">TimeRex切替＋3/10 LP改修完了</span>
+        </div>
+        <div class="issue-row">
+          <span class="issue-status is-ongoing">継続中</span>
+          <span class="issue-text">架電でのアポ獲得が難航</span>
+          <span class="issue-action">再架電＋セミナー起点のフォロー導線強化</span>
+        </div>
+        <div class="issue-row">
+          <span class="issue-status is-pending">未着手</span>
+          <span class="issue-text">セミナー後フォローの仕組みが未確立</span>
+          <span class="issue-action">牧野さんとの設計が急務</span>
+        </div>
+        <div class="issue-row">
+          <span class="issue-status is-ongoing">約830件</span>
+          <span class="issue-text">自社ハウスリストが弱い</span>
+          <span class="issue-action">共催セミナー・展示会で継続拡大</span>
+        </div>
+        <div class="issue-row">
+          <span class="issue-status is-ongoing">構築中</span>
+          <span class="issue-text">3月末目標（4名内定承諾）の達成見通し</span>
+          <span class="issue-action">個別相談2件＋紹介1件＋コミュニティ1件がパイプライン</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Next Actions -->
+  <div class="card" style="margin-bottom:24px;">
+    <h2>4月以降に向けた注目ポイント</h2>
+    <div class="grid-3" style="margin-bottom:0;">
+      <div class="next-item ni-1">
+        <h4>4/1 人材紹介許可確定</h4>
+        <p>IBJ連携解禁（歯科医師500人）/ DENTAL EXECUTIVE AGENT始動</p>
+      </div>
+      <div class="next-item ni-2">
+        <h4>協業先ネットワーク活用</h4>
+        <p>SCO / GENOVA / 日本ビスカ / クオキャリアとの共催セミナー・紹介連携を本格化</p>
+      </div>
+      <div class="next-item ni-3">
+        <h4>LP改修後の効果検証</h4>
+        <p>適性診断CTA・TimeRex導線の転換率をモニタリング、FB広告を再開して検証</p>
+      </div>
+      <div class="next-item ni-4">
+        <h4>セミナー後フォロー体制の確立</h4>
+        <p>牧野さんとの設計、千賀セミナー14件の資料送付先への継続アプローチ</p>
+      </div>
+      <div class="next-item ni-5">
+        <h4>3/12 dentwave共催セミナー</h4>
+        <p>各社自力集客方針 / FB広告5万円分配信 / セミナーリスト130名にメール配信</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal Achievement Chart -->
+  <div class="grid-2">
+    <div class="card">
+      <h2>目標 vs 実績</h2>
+      <canvas id="goalChart" style="max-height:300px;"></canvas>
+    </div>
+    <div class="card">
+      <h2>リード獲得内訳</h2>
+      <canvas id="leadSourceChart" style="max-height:300px;"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Breakdown Donut
+new Chart(document.getElementById('breakdownChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['資料送付希望', '個別相談', 'LINE紹介', 'コミュニティ経由', 'FB広告CV'],
+    datasets: [{
+      data: [14, 2, 1, 1, 1],
+      backgroundColor: ['#1e88e5','#43a047','#ff9800','#7b1fa2','#e53935'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position:'bottom', labels:{ font:{size:12}, padding:12 } }
+    }
+  }
+});
+
+// Goal vs Actual
+new Chart(document.getElementById('goalChart'), {
+  type: 'bar',
+  data: {
+    labels: ['勤務医獲得\n（集客）','選考開始','内定','内定承諾'],
+    datasets: [
+      { label:'目標', data:[42,14,7,4], backgroundColor:'rgba(25,107,37,0.2)', borderColor:'#196B25', borderWidth:2 },
+      { label:'実績', data:[19,3,0,0], backgroundColor:'rgba(229,57,53,0.7)', borderColor:'#e53935', borderWidth:0 }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: { y:{ beginAtZero:true } },
+    plugins: { legend:{ position:'top' } }
+  }
+});
+
+// Lead Source
+new Chart(document.getElementById('leadSourceChart'), {
+  type: 'pie',
+  data: {
+    labels: ['セミナー（資料送付）','セミナー（個別相談）','LINE紹介','コミュニティDM','FB広告CV'],
+    datasets: [{
+      data: [14, 2, 1, 1, 1],
+      backgroundColor: ['#1565c0','#42a5f5','#ff9800','#7b1fa2','#e53935'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend:{ position:'bottom', labels:{ font:{size:11}, padding:10 } } }
+  }
+});
+</script>
+
+</body>
+</html>
